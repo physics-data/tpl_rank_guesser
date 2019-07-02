@@ -5,6 +5,8 @@ import re
 import sys
 import os
 import json
+import subprocess
+import time
 from os.path import isfile, join
 import filecmp
 
@@ -32,15 +34,26 @@ for file in sorted(files):
     num = int(file[2:-4])
     file_ans = join(path, 'ans%d.txt' % num)
     file_out = join(path, 'out%d.txt' % num)
+    
     try:
         os.remove(file_out)
     except FileNotFoundError:
         pass
-    os.system('%s guesser.py < %s > %s' % (sys.executable, file_in, file_out))
-    if file_lines(file_ans) == file_lines(file_out):
+    
+    p = subprocess.Popen([sys.executable, 'guesser.py'], stdin=open(file_in, 'r'), stdout=open(file_out,'w'), stderr=open(os.devnull,'w'))
+    start_time = time.time()
+
+    while p.poll() is None:
+        if time.time() - start_time > 1:
+            p.kill()
+    
+    ans = file_lines(file_ans)
+    out = file_lines(file_out)
+
+    if ans == out:
         grade += 100.0 / len(files)
     elif os.isatty(1):
-        print('Data %d: expected %s, but got %s' % (num, file_lines(file_ans), file_lines(file_out)))
+        print('Data %d: expected %s, but got %s' % (num, ans, out))
 
 data['grade'] = grade
 if os.isatty(1):
