@@ -1,4 +1,6 @@
 Guess?
 Too big
+Guess?
 Too small
+Guess?
 Correct
