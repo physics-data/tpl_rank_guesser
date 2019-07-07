@@ -40,7 +40,7 @@ for file in sorted(files):
     except FileNotFoundError:
         pass
     
-    p = subprocess.Popen([sys.executable, 'guesser.py'], stdin=open(file_in, 'r'), stdout=open(file_out,'w'), stderr=open(os.devnull,'w'))
+    p = subprocess.Popen([sys.executable, 'guesser.py'], stdin=open(file_in, 'r'), stdout=open(file_out,'w'), stderr=subprocess.PIPE)
     start_time = time.time()
 
     while p.poll() is None:
@@ -53,7 +53,11 @@ for file in sorted(files):
     if ans == out:
         grade += 100.0 / len(files)
     elif os.isatty(1):
-        print('Data %d: expected %s, but got %s' % (num, ans, out))
+        print('Data %d: expected %s, but got %s' % (num, repr(ans), repr(out)))
+        stdout, stderr = p.communicate(timeout=1)
+        if len(stderr) > 0:
+            print('       : your program exited with:')
+            sys.stdout.buffer.write(stderr)
 
 data['grade'] = grade
 if os.isatty(1):
